@@ -1,0 +1,15 @@
+[package]
+name = "hex-benchmarks"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hex = { package = "hex-conservative", path = "../hex-conservative" }
+rand = "0.8.5"
+
+[dev-dependencies]
+iai-callgrind = "0.14.0"
+
+[[bench]]
+name = "library_benchmark"
+harness = false
