@@ -18,6 +18,7 @@ fn iter(mut v: (String, BytesToHexIter<IntoIter<u8>>)) {
 }
 
 fn buf_encoder<const CAP: usize>(mut v: (BufEncoder<CAP>, Vec<u8>)) {
+    //v.0.put_bytes(v.1, hex::Case::Lower);
     v.0.put_bytes(v.1);
 }
 
@@ -89,6 +90,7 @@ fn setup_buf_encoder<const CAP: usize>() -> (BufEncoder<CAP>, Vec<u8>) {
     let mut src = vec![0u8; CAP / 2];
     let mut rng = rand::thread_rng();
     rng.fill_bytes(&mut src);
+    //let dest = BufEncoder::new();
     let dest = BufEncoder::new(hex::Case::Lower);
     (dest, src)
 }
