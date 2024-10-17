@@ -6,6 +6,9 @@ use std::vec::IntoIter;
 use hex::BytesToHexIter;
 use hex::DisplayHex;
 use hex::buf_encoder::BufEncoder;
+use hex::FromHex;
+
+use rand::RngCore;
 
 fn display_hex(mut v: (String, Vec<u8>)) {
     write!(v.0, "{}", v.1.as_hex()).unwrap();
@@ -18,8 +21,24 @@ fn iter(mut v: (String, BytesToHexIter<IntoIter<u8>>)) {
 }
 
 fn buf_encoder<const CAP: usize>(mut v: (BufEncoder<CAP>, Vec<u8>)) {
-    //v.0.put_bytes(v.1, hex::Case::Lower);
-    v.0.put_bytes(v.1);
+    v.0.put_bytes(v.1, hex::Case::Lower);
+    //v.0.put_bytes(v.1);
+}
+
+fn big_from_hex_to_array(v: String) {
+    <[u8; 16 * 1024]>::from_hex(&v).unwrap();
+}
+
+fn kib_from_hex_to_array(v: String) {
+    <[u8; 1024]>::from_hex(&v).unwrap();
+}
+
+fn small_from_hex_to_array(v: String) {
+    <[u8; 128]>::from_hex(&v).unwrap();
+}
+
+fn from_hex_to_vec(v: String) {
+    Vec::from_hex(&v).unwrap();
 }
 
 #[library_benchmark]
@@ -58,13 +77,43 @@ fn bench_onemib_buf_encoder(v: (BufEncoder<1048576>, Vec<u8>)) {
     black_box(buf_encoder(v))
 }
 
+#[library_benchmark]
+#[bench::first(setup = setup_big_from_hex)]
+fn bench_big_from_hex_to_array(v: String) {
+    black_box(big_from_hex_to_array(v))
+}
+
+#[library_benchmark]
+#[bench::first(setup = setup_kib_from_hex)]
+fn bench_kib_from_hex_to_array(v: String) {
+    black_box(kib_from_hex_to_array(v))
+}
+
+#[library_benchmark]
+#[bench::first(setup = setup_small_from_hex)]
+fn bench_small_from_hex_to_array(v: String) {
+    black_box(small_from_hex_to_array(v))
+}
+
+#[library_benchmark]
+#[bench::small(setup = setup_small_from_hex)]
+#[bench::kib(setup = setup_kib_from_hex)]
+#[bench::big(setup = setup_big_from_hex)]
+fn bench_from_hex_to_vec(v: String) {
+    black_box(from_hex_to_vec(v))
+}
 
 library_benchmark_group!(
 name = bench_encoding_group;
     benchmarks = bench_display_hex, bench_iter, bench_onekib_buf_encoder, bench_sevenkib_buf_encoder, bench_onemib_buf_encoder,
     );
 
-main!(library_benchmark_groups = bench_encoding_group);
+library_benchmark_group!(
+name = bench_decoding_group;
+    benchmarks = bench_big_from_hex_to_array, bench_kib_from_hex_to_array, bench_small_from_hex_to_array, bench_from_hex_to_vec,
+    );
+
+main!(library_benchmark_groups = bench_decoding_group);
 
 fn setup_display_hex(size: usize) -> (String, Vec<u8>) {
     use rand::RngCore;
@@ -90,8 +139,30 @@ fn setup_buf_encoder<const CAP: usize>() -> (BufEncoder<CAP>, Vec<u8>) {
     let mut src = vec![0u8; CAP / 2];
     let mut rng = rand::thread_rng();
     rng.fill_bytes(&mut src);
-    //let dest = BufEncoder::new();
-    let dest = BufEncoder::new(hex::Case::Lower);
+    let dest = BufEncoder::new();
+    //let dest = BufEncoder::new(hex::Case::Lower);
     (dest, src)
 }
+
+macro_rules! setup_from_hex {
+    ($LEN:expr) => {{
+        let mut src = [0u8; $LEN];
+        let mut rng = rand::thread_rng();
+        rng.fill_bytes(&mut src);
+        src.as_hex().to_string()
+    }};
+}
+
+fn setup_big_from_hex() -> String {
+    setup_from_hex!(16 * 1024)
+}
+
+fn setup_kib_from_hex() -> String {
+    setup_from_hex!(1024)
+}
+
+fn setup_small_from_hex() -> String {
+    setup_from_hex!(128)
+}
+
 
