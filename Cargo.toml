@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 hex = { package = "hex-conservative", path = "../hex-conservative" }
 rand = "0.8.5"
+hex-base = { package = "hex", version = "0.4.3" }
 
 [dev-dependencies]
 iai-callgrind = "0.14.0"

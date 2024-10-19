@@ -8,6 +8,9 @@ use hex::DisplayHex;
 use hex::buf_encoder::BufEncoder;
 use hex::FromHex;
 
+use hex_base::decode_to_slice;
+use hex_base::decode;
+
 use rand::RngCore;
 
 fn display_hex(mut v: (String, Vec<u8>)) {
@@ -26,19 +29,26 @@ fn buf_encoder<const CAP: usize>(mut v: (BufEncoder<CAP>, Vec<u8>)) {
 }
 
 fn big_from_hex_to_array(v: String) {
-    <[u8; 16 * 1024]>::from_hex(&v).unwrap();
+    let _ = <[u8; 16 * 1024]>::from_hex(&v).unwrap();
+    //let mut buf = [0u8; 16 * 1024];
+    //decode_to_slice(v, &mut buf).unwrap();
 }
 
 fn kib_from_hex_to_array(v: String) {
-    <[u8; 1024]>::from_hex(&v).unwrap();
+    let _ = <[u8; 1024]>::from_hex(&v).unwrap();
+    //let mut buf = [0u8; 1024];
+    //decode_to_slice(v, &mut buf).unwrap();
 }
 
 fn small_from_hex_to_array(v: String) {
-    <[u8; 128]>::from_hex(&v).unwrap();
+    let _ = <[u8; 128]>::from_hex(&v).unwrap();
+    //let mut buf = [0u8; 128];
+    //decode_to_slice(v, &mut buf).unwrap();
 }
 
 fn from_hex_to_vec(v: String) {
     Vec::from_hex(&v).unwrap();
+    //let _: Vec<u8> = decode(v).unwrap();
 }
 
 #[library_benchmark]
